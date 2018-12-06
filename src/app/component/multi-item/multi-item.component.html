@@ -1,0 +1,166 @@
+<div class="scroll-x">
+<form #multiForm="ngForm" class="ui form" (ngSubmit)="onSubmit(multiForm)">
+<table class="ui padded celled table segment">
+  <thead>
+    <tr>
+      <ng-container *ngFor="let header of fieldObject.itemFields">
+        <th *ngIf="header.isVisible">
+          {{header.fieldDisplayName}}
+        </th>
+      </ng-container>
+      <th *ngIf="!fieldObject.readOnly">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngIf="!fieldObject.readOnly">
+        <ng-template ngFor let-field [ngForOf]="fieldObject.itemFields">
+          <td  *ngIf="field.isVisible">
+            <!-- text -->
+            <ng-container *ngIf="field.type === 'text'">
+              <input type="text" placeholder="{{field.fieldDisplayName}}" [name]="field.fieldName" ngModel [ngClass]="{'disabled': field.readOnly}">
+            </ng-container>
+            <!-- number -->
+            <ng-container *ngIf="field.type === 'number'">
+                <input type="number" placeholder="{{field.fieldDisplayName}}" [name]="field.fieldName" ngModel [ngClass]="{'disabled': field.readOnly}">
+            </ng-container>
+            <!-- dropdown -->
+            <ng-container *ngIf="field.type === 'dropdown'">
+              <!-- static -->
+              <ng-container *ngIf="checkSourceType(field._source) === 1">
+                <div class="field">
+                  <sui-select class="selection"
+                    [name]="field.fieldName"
+                    ngModel
+                    labelField="displayName"
+                    [options]="field._source"
+                    [optionTemplate]="optionTemplate"
+                    valueField="value"
+                    isDisabled="{{field.readOnly}}"
+                    #templated>
+                      <sui-select-option *ngFor="let item of field._source" [value]="item"></sui-select-option>
+                    </sui-select>
+                  <ng-template let-option #optionTemplate[field.fieldName]> <!-- leave this here. will be very useful for style stuff later on -->
+                    {{ option.displayName }}
+                  </ng-template>
+                </div>
+              </ng-container>
+              <!-- dynamic -->
+              <ng-container *ngIf="checkSourceType(field._source) === 2">
+                <sui-select-ext [selectOptionsUrl]="field._source" [selectOptionsPayload]="field._payload" (dropDownValueChange)="propDropdownValue($event)" >
+                  <div class="field">
+                    <sui-select class="selection"
+                      [name]="field.fieldName"
+                      ngModel
+                      [options]="dynamicOptions"
+                      [optionTemplate]="optionTemplate"
+                      labelField="displayName"
+                      valueField="value"
+                      isDisabled="{{field.readOnly}}"
+                      #selectArray>
+                      <sui-select-option *ngFor="let item of selectArray.filteredOptions" [value]="item"></sui-select-option>
+                    </sui-select>
+                  </div>
+                </sui-select-ext>
+                <ng-template let-option #optionTemplate[field.fieldName]> <!-- leave this here. will be very useful for style stuff later on -->
+                  {{ option.displayName }}
+                </ng-template>
+              </ng-container>
+            </ng-container>
+            <!-- date type -->
+            <app-date-form-field 
+              *ngIf="field.type === 'datetime' || field.type === 'date' || field.type === 'time' || field.type === 'timestamp'" 
+              [name]="field.fieldName" 
+              ngModel [type]="field.type" 
+              [displayFormat]="settings.defaultFormats[field.type]">
+            </app-date-form-field>
+          </td>
+        </ng-template>
+        <td><input type="submit" class="ui button small secondary fluid" value="Add"></td>
+    </tr>
+    <tr *ngFor="let row of tableData; index as i">
+      <ng-template ngFor let-field [ngForOf]="fieldObject.itemFields">
+        <td (dblclick)="edit(i, field)" *ngIf="field.isVisible">
+          <ng-container *ngIf="!isEdittable(i, field.fieldName)">
+            <ng-container *ngIf="field.type === 'text' || field.type === 'dropdown'">
+              {{row[field.fieldName]}}
+            </ng-container>
+            <ng-container *ngIf="field.type === 'datetime' || field.type === 'date' || field.type === 'time' || field.type === 'timestamp'">
+              {{row[field.fieldName].value | date:settings.defaultFormats.date}}
+            </ng-container>
+          </ng-container>
+          <ng-container *ngIf="isEdittable(i, field.fieldName)">
+            <ng-container *ngIf="field.type === 'text'">
+              <input [(ngModel)]="editableFieldVal" [editField]="isEdittable(i, field.fieldName)" [ngModelOptions]="{standalone: true}" (keyup.enter)="onEnter(i, field.fieldName, $event)" suiPopup [popupText]="editableFieldVal">
+            </ng-container>
+            <!-- dropdown -->
+            <ng-container *ngIf="field.type === 'dropdown'">
+              <!-- static -->
+              <ng-container *ngIf="checkSourceType(field._source) === 1">
+                <div class="field">
+                  <sui-select class="selection"
+                    [(ngModel)]="editableFieldVal"
+                    [ngModelOptions]="{standalone: true}"
+                    labelField="displayName"
+                    [options]="field._source"
+                    [optionTemplate]="optionTemplate"
+                    valueField="value"
+                    isDisabled="{{field.readOnly}}"
+                    #templated>
+                      <sui-select-option *ngFor="let item of field._source" [value]="item"></sui-select-option>
+                    </sui-select>
+                  <ng-template let-option #optionTemplate[field.fieldName]> <!-- leave this here. will be very useful for style stuff later on -->
+                    {{ option.displayName }}
+                  </ng-template>
+                </div>
+              </ng-container>
+              <!-- dynamic -->
+              <ng-container *ngIf="checkSourceType(field._source) === 2">
+                <sui-select-ext [selectOptionsUrl]="field._source" [selectOptionsPayload]="field._payload" (dropDownValueChange)="propDropdownValue($event)" >
+                  <div class="field">
+                    <sui-select class="selection"
+                      [(ngModel)]="editableFieldVal"
+                      [ngModelOptions]="{standalone: true}"
+                      [options]="dynamicOptions"
+                      [optionTemplate]="optionTemplate"
+                      labelField="displayName"
+                      valueField="value"
+                      isDisabled="{{field.readOnly}}"
+                      #selectArray>
+                      <sui-select-option *ngFor="let item of selectArray.filteredOptions" [value]="item"></sui-select-option>
+                    </sui-select>
+                  </div>
+                </sui-select-ext>
+                <ng-template let-option #optionTemplate[field.fieldName]> <!-- leave this here. will be very useful for style stuff later on -->
+                  {{ option.displayName }}
+                </ng-template>
+              </ng-container>
+            </ng-container>
+            <ng-container *ngIf="field.type === 'number'">
+                <input type="number" placeholder="{{field.fieldDisplayName}}" [(ngModel)]="editableFieldVal" [ngModelOptions]="{standalone: true}" (keyup.enter)="onEnter(i, field.fieldName, $event)">
+            </ng-container>
+            <ng-container *ngIf="field.type === 'datetime' || field.type === 'date' || field.type === 'time' || field.type === 'timestamp'">
+              <app-date-form-field 
+                [(ngModel)]="editableFieldVal"
+                [ngModelOptions]="{standalone: true}"
+                [type]="field.type"
+                [displayFormat]="settings.defaultFormats[field.type]">
+              </app-date-form-field>
+              <!-- <input suiDatepicker
+                [pickerMode]="type"
+                pickerFirstDayOfWeek="1"
+                [ngModelOptions]="{standalone: true}"
+                [(ngModel)]="editableFieldVal"
+                [pickerUseNativeOnMobile]="false"> -->
+            </ng-container>
+          </ng-container>
+        </td>
+      </ng-template>
+      <td *ngIf="!fieldObject.readOnly">
+        <button class="ui button small red fluid" type="button" (click)="remove(i)"
+          [style.display]="fieldObject.readOnly ? 'none' : 'block'">Remove</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</form>
+</div>

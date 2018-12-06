@@ -1,0 +1,114 @@
+<div class="ui segment attached">
+  <div class="ui segment header-title" *ngIf="componentConfig.showTitle">
+      <div class="ui header">{{componentConfig.title}}</div>
+  </div>
+  <div class="ui secondary">
+      <form [formGroup]="formObject" class="ui equal width form" *ngIf="componentConfig.formFields">
+        <!-- <div *ngFor="let fields of componentConfig.formFields">{{fields.fieldName}}</div> -->
+        <ng-container *ngTemplateOutlet="recursiveForm; context:{$implicit: componentConfig.formFields}"></ng-container>
+        <ng-template #recursiveForm let-formFields>
+          <ng-container *ngFor="let fields of formFields">
+            <div [ngClass]="{'field': fields.type !== 'group', 'fields': fields.type === 'group'}" [ngSwitch]="fields.type">
+                <label *ngIf="fields.showLabel && fields.isVisible">{{fields.fieldDisplayName}}</label>
+                <ng-container *ngSwitchCase="'group'">
+                  <ng-container *ngTemplateOutlet="recursiveForm; context:{$implicit: fields.formFields}"></ng-container>
+                </ng-container>
+                <!-- text type -->
+                <div *ngSwitchCase="'text'" class="ui input" [ngClass]="{'disabled': fields.readOnly}">
+                  <input placeholder="{{fields.fieldHint}}" [formControlName]="fields.fieldName" [attr.type]="fields.isVisible? 'text': 'hidden'">
+                </div>
+                <!-- number type -->
+                <div *ngSwitchCase="'number'" class="ui input" [ngClass]="{'labeled': fields.uomDisplay?.length, 'disabled': fields.readOnly}">
+                  <label class="ui label" *ngIf="fields.uomDisplay?.length">{{ fields.uomDisplay }}</label>
+                  <input placeholder="{{fields.fieldHint}}" type="number" [formControlName]="fields.fieldName" [attr.type]="fields.isVisible? 'text': 'hidden'">
+                </div>
+                <!-- date type -->
+                <app-date-form-field *ngSwitchCase="'datetime'" [formControlName]="fields.fieldName" [type]="fields.type" [displayFormat]="settings.defaultFormats[fields.type]" [readOnly]="fields.readOnly"></app-date-form-field>
+                <app-date-form-field *ngSwitchCase="'date'" [formControlName]="fields.fieldName" [type]="fields.type" [displayFormat]="settings.defaultFormats[fields.type]" [readOnly]="fields.readOnly"></app-date-form-field>
+                <app-date-form-field *ngSwitchCase="'time'" [formControlName]="fields.fieldName" [type]="fields.type" [displayFormat]="settings.defaultFormats[fields.type]" [readOnly]="fields.readOnly"></app-date-form-field>
+                <app-date-form-field *ngSwitchCase="'timestamp'" [formControlName]="fields.fieldName" [type]="fields.type" [displayFormat]="settings.defaultFormats[fields.type]" [readOnly]="fields.readOnly"></app-date-form-field>
+                <!-- <div *ngSwitchCase="'datetime'" class="ui left icon input">
+                  <i class="calendar icon"></i>
+                  <input suiDatepicker
+                    pickerMode="datetime"
+                    pickerFirstDayOfWeek="1"
+                    [formControlName]="fields.fieldName"
+                    [pickerUseNativeOnMobile]="false"
+                    [attr.type]="fields.isVisible? 'text': 'hidden'">
+                </div> -->
+                <!-- switch type -->
+                <div *ngSwitchCase="'switch'" class="ui toggle checkbox" [ngClass]="{'labeled': fields.uomDisplay?.length}">
+                  <label class="ui label" *ngIf="fields.uomDisplay?.length">{{ fields.uomDisplay }}</label>
+                  <input type="checkbox" [formControlName]="fields.fieldName" [attr.type]="fields.isVisible? 'text': 'hidden'">
+                </div>
+                <!-- date type -->
+                <!-- <div *ngSwitchCase="'date'" class="ui input">
+                  <label class="ui label" *ngIf="fields.uomDisplay?.length">{{ fields.uomDisplay }}</label>
+                  <input placeholder="{{fields.fieldHint}}" type="number">
+                  [attr.hidden]="!fields.isVisible"></textarea
+                </div> -->
+                <!-- textarea type -->
+                <div *ngSwitchCase="'textarea'" class="ui input" [ngClass]="{'disabled': fields.readOnly}">
+                  <input *ngIf="!fields.isVisible" placeholder="{{fields.fieldHint}}" [formControlName]="fields.fieldName" type="hidden">
+                  <textarea *ngIf="fields.isVisible" placeholder="{{fields.fieldHint}}" [formControlName]="fields.fieldName"></textarea>
+                </div>
+                <!-- checkbox type -->
+                <!-- <div *ngSwitchCase="'number'" class="ui input">
+                  <sui-checkbox [(ngModel)]="eCheck" [readOnly]="eCheckDisabled" [isReadonly]="eCheckReadonly">
+                      An example checkbox
+                  </sui-checkbox>
+                </div> -->
+                <!-- dropdown type -->
+                <ng-container *ngSwitchCase="'dropdown'">
+                  <!-- static -->
+                  <ng-container *ngIf="checkSourceType(fields._source) === 1">
+                    <div class="field">
+                      <sui-select class="selection"
+                        formControlName="{{fields.fieldName}}"
+                        labelField="displayName"
+                        [options]="fields._source"
+                        [optionTemplate]="optionTemplate"
+                        valueField="value"
+                        isDisabled="{{fields.readOnly}}"
+                        #templated>
+                        <sui-select-option *ngFor="let item of fields._source" [value]="item"></sui-select-option>
+                      </sui-select>
+                      <ng-template let-option #optionTemplate[fields.fieldName]> <!-- leave this here. will be very useful for style stuff later on -->
+                        {{ option.displayName }}
+                      </ng-template>
+                    </div>
+                  </ng-container>
+                  <!-- dynamic -->
+                  <ng-container *ngIf="checkSourceType(fields._source) === 2">
+                    <sui-select-ext [selectOptionsUrl]="fields._source" [selectOptionsPayload]="fields._payload" (dropDownValueChange)="propDropdownValue($event)" >
+                      <div class="field">
+                        <sui-select class="selection"
+                          formControlName="{{fields.fieldName}}"
+                          [options]="dynamicOptions"
+                          [optionTemplate]="optionTemplate"
+                          labelField="displayName"
+                          valueField="value"
+                          isDisabled="{{fields.readOnly}}"
+                          #selectArray>
+                          <sui-select-option *ngFor="let item of selectArray.filteredOptions" [value]="item"></sui-select-option>
+                        </sui-select>
+                      </div>
+                    </sui-select-ext>
+                    <ng-template let-option #optionTemplate[fields.fieldName]> <!-- leave this here. will be very useful for style stuff later on -->
+                      {{ option.displayName }}
+                    </ng-template>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="'multiItem'">
+                  <multi-item [fieldObject]="fields" [formControlName]="fields.fieldName"></multi-item>
+                </ng-container>
+            </div>
+          </ng-container>
+        </ng-template>
+        <ng-container *ngFor="let button of componentConfig.buttons">
+          <button class="ui button" (click)="onSubmit(formObject, button)">{{button.displayName}}</button>
+        </ng-container>
+      </form>
+  </div>
+  
+</div>

@@ -1,0 +1,39 @@
+<div class="ui segment attached">
+  <div class="ui segment header-title" *ngIf="componentConfig.showTitle">
+    <div class="ui header">{{componentConfig.title}}</div>
+  </div>
+  <div class="ui">
+    <table class="ui very basic center aligned celled table unstackable">
+        <thead>
+          <tr>
+            <th *ngFor="let header of componentConfig.columnFields">
+              {{header.columnDisplayName}}
+            </th>
+          </tr>
+      </thead>
+        <tbody>
+          <tr *ngFor="let column of tableData" (click)="entryClick(column)">
+            <ng-template ngFor let-field [ngForOf]="componentConfig.columnFields">
+              <td *ngIf="1">
+                <ng-container *ngIf="field.type === 'text'">
+                  {{column[field.columnName]}}
+                </ng-container>
+                <ng-container *ngIf="field.type === 'datetime' || field.type === 'date' || field.type === 'time' || field.type === 'timestamp'">
+                  {{( column[field.columnName] ? ( column[field.columnName].value  | date:settings.defaultFormats.date ) : '' )}}
+                </ng-container>
+              </td>
+            </ng-template>
+          </tr>
+        </tbody>
+        <tfoot class="full-width">
+          <tr>
+            <th [attr.colspan]="componentConfig.columnFields.length ? componentConfig.columnFields.length : '20'"> <!-- TODO: stupid, improve -->
+              <div class="ui right floated secondary button" *ngFor="let button of componentConfig.buttons" (click)="tableBtnClick(button)">
+                {{button.displayName}}
+              </div>
+            </th>
+          </tr>
+        </tfoot>
+      </table>
+  </div>
+</div>

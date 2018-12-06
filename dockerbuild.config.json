@@ -1,0 +1,6 @@
+{
+	"containerName": "web-box",
+	"containerOwner": "boxchain",
+	"port": 4200,
+	"version": "v1"
+}

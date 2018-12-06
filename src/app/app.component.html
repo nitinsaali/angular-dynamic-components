@@ -1,0 +1,46 @@
+<div class="ui menu header-container">
+    <!-- <a *ngFor="let menu of menuList" class="item" href="/viewport/{{menu.viewName}}">{{menu.displayName}}</a> -->
+    <div class="header"><img class="main-logo" src="assets/logo.png" style="height: 40px;"/></div>
+    <div *ngFor="let menu of menuList" class="ui pointing dropdown link item" suiDropdown>
+      <span class="header">{{menu.solutionDisplayName}}</span>
+      <i class="dropdown icon"></i>
+      <div class="menu" suiDropdownMenu>
+        <ng-container *ngFor="let view of menu.views">
+          <!-- declare individually as routerLink is kind of bitch -->
+          <a *ngIf="view.target === 'self' || !view.target" class="item" routerLink="/viewport/{{menu.solutionName}}/{{view.viewName}}" queryParamsHandling="preserve">{{view.displayName}}</a>
+          <a *ngIf="view.target === '_blank'" target="_blank" class="item" href="{{view.link}}">{{view.displayName}}</a>
+        </ng-container>
+      </div>
+    </div>
+    <div class="right menu">
+      <a class="item" (click)="logout()">
+        Logout
+      </a>
+    </div>
+</div>
+<div class="ui">
+  <div class="main-container">
+    <div class="ui segments">
+      <router-outlet>
+      </router-outlet>
+    </div>
+    <div class="ui message" *ngIf="message" [ngClass]="messageType">
+      <i class="close icon" (click)="clearErrorMessage()"></i>
+      <ng-container [ngSwitch]="messageType">
+        <div class="header" *ngSwitchCase="'error'">
+          An error occured
+        </div>
+        <div class="header" *ngSwitchCase="'success'">
+          Success
+        </div>
+        <div class="header" *ngSwitchCase="'warning'">
+          Sorry!
+        </div>
+        <div class="header" *ngSwitchCase="'info'">
+          Please note
+        </div>  
+      </ng-container>
+      <p><ng-container *ngIf="messageType == 'error'">Message: </ng-container>{{message}}</p>
+    </div>
+  </div>
+</div>

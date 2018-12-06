@@ -1,0 +1,42 @@
+// Add here manually global/default setup for all
+
+/deep/ .main-container {
+    padding: 10px;
+}
+
+.header-container {
+    padding: 10px;
+}
+
+/deep/ .ui.secondary.button,
+/deep/ .ui.secondary.buttons .button {
+    color: #FFF;
+    background-color: #4e5d75;
+}
+
+/deep/ .ui.segment {
+    &.header-title {
+        background-color: #e37320;
+        border: none;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        /deep/ .ui.header {
+            color: #FFF;
+        }
+    }
+}
+
+/deep/ .spacer {
+    height: 10px;
+}
+
+/deep/ .dimmer {
+    display: flex !important;
+    &.visible.transition {
+        display: flex !important;
+    }
+}
+
+/deep/ .scroll-x {
+    overflow-x: auto;
+}
